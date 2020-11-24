@@ -128,7 +128,7 @@ for url in feed_url:
     location = soup.find("a", {"class": "O4GlU"}).text
     tag_name = soup.find_all("span", {"class": "eg3Fv"})
     content = soup.find("div", {"class": "C4VMK"}).text
-    like = soup.find("div", {"class": "Nm9Fw"}).find("button").find("span").text
+    like = int(soup.find("div", {"class": "Nm9Fw"}).find("button").find("span").text)
     comment = len(soup.find_all("ul", {"class": "Mr508"}))
 
     temp = []
@@ -154,18 +154,19 @@ print(feed_comment)
 # data
 data["feed_count"] = feed_count
 
-for name_count_list in location_list_setting(feed_location):
-    data["feed_location"].append(
-        {"name": name_count_list[0], "count": name_count_list[1]}
-    )
+name, count = location_list_setting(feed_location)
+for i in range(0, len(name)):
+    data["feed_location"].append({"name": name[i], "count": count[i]})
 print(data)
-for name_count_url_img_url in friend_list_setting(feed_tag_name):
+
+name, count, url, img_url = friend_list_setting(feed_tag_name)
+for i in range(0, len(name)):
     data["friend_profile"].append(
         {
-            "name": name_count_url_img_url[0],
-            "count": name_count_url_img_url[1],
-            "url": name_count_url_img_url[2],
-            "img_url": name_count_url_img_url[3],
+            "name": name[i],
+            "count": count[i],
+            "url": url[i],
+            "img_url": img_url[i],
         }
     )
 print(data)
@@ -180,6 +181,9 @@ for i in range(0, feed_count):
             "comment_count": feed_comment[i],
         }
     )
+
+data["feeds_like"] = sorted(data["feeds_date"], key=lambda x: x["like_count"])
+data["feeds_comment"] = sorted(data["feeds_date"], key=lambda x: x["comment_count"])
 
 print(data)
 
