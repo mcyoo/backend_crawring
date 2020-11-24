@@ -5,7 +5,7 @@ import csv
 import json
 
 loading_sec = 5
-instargram_url = "https://www.instagram.com"
+instargram_url = "https://www.instagram.com/"
 SCROLL_PAUSE_SEC = loading_sec
 file_path = "instagram_data.json"
 
@@ -72,7 +72,7 @@ def friend_list_setting(friend_list):
 
 
 time.sleep(loading_sec)
-driver.get(instargram_url + "/jejucleanboysclub")
+driver.get(instargram_url + "jejucleanboysclub")
 time.sleep(loading_sec)
 
 last_height = driver.execute_script("return document.body.scrollHeight")
@@ -95,15 +95,16 @@ print(len(feed))
 # print(feed[0].find("a")["href"])
 feed_count = len(feed)
 feed_url = []
+feed_img = []
 feed_location = []
 feed_tag_name = []
-feed_tag_url = []
 feed_content = []
 feed_like = []
 feed_comment = []
 
 for href in feed:
     feed_url.append(instargram_url + href.find("a")["href"])
+    feed_img.append(soup.find("div", {"class": "KL4Bh"}).find("img")["src"])
 
 for url in feed_url:
     driver.get(url)
@@ -113,6 +114,8 @@ for url in feed_url:
     location = soup.find("a", {"class": "O4GlU"}).text
     tag_name = soup.find_all("span", {"class": "eg3Fv"})
     content = soup.find("div", {"class": "C4VMK"}).text
+    like = soup.find("div", {"class": "Nm9Fw"}).find("button").find("span").text
+    comment = len(soup.find_all("ul", {"class": "Mr508"}))
 
     temp = []
     for name in tag_name:
@@ -121,34 +124,51 @@ for url in feed_url:
 
     feed_location.append(location)
     feed_tag_name.append(temp)
-    feed_comment.append(content)
+    feed_content.append(content)
+    feed_like.append(like)
+    feed_comment.append(comment)
+
 
 print(feed_url)
+print(feed_img)
 print(feed_location)
 print(feed_tag_name)
+print(feed_content)
+print(feed_like)
 print(feed_comment)
 
-# data["feed_count"] = 0
-# data["feed_location"] = []
-# data["friend_profile"] = []
-# data["feeds_date"] = []
-# data["feeds_like"] = []
-# data["feeds_comment"] = []
-
+# data
 data["feed_count"] = feed_count
 
-for name, count in location_list_setting(feed_location):
-    data["feed_location"].append({"name": name, "count": count})
+for name_count_list in location_list_setting(feed_location):
+    data["feed_location"].append(
+        {"name": name_count_list[0], "count": name_count_list[1]}
+    )
 
-for name, count, url, img_url in friend_list_setting(feed_tag_name):
+for name_count_url_img_url in friend_list_setting(feed_tag_name):
     data["friend_profile"].append(
-        {"name": name, "count": count, "url": url, "img_url": img_url}
+        {
+            "name": name_count_url_img_url[0],
+            "count": name_count_url_img_url[1],
+            "url": name_count_url_img_url[2],
+            "img_url": name_count_url_img_url[3],
+        }
+    )
+for i in range(0, feed_count):
+    data["feeds_date"].append(
+        {
+            "content": feed_content[i],
+            "url": feed_url[i],
+            "img_url": feed_img[i],
+            "location": feed_location[i],
+            "like_count": feed_like[i],
+            "comment_count": feed_comment[i],
+        }
     )
 
 print(data)
 
 with open(file_path, "w") as outfile:
     json.dump(data, outfile)
-
 
 driver.quit()
