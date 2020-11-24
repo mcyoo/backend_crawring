@@ -7,7 +7,7 @@ import json
 loading_sec = 5
 instargram_url = "https://www.instagram.com"
 SCROLL_PAUSE_SEC = loading_sec
-file_path = "instagram_data.json"
+file_path = "/home/ec2-user/frontend/src/instagram_data.json"
 
 
 data = {}
