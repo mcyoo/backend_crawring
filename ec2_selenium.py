@@ -22,8 +22,6 @@ options = Options()
 options.add_argument("--headless")
 options.add_argument("window-size=1920,1080")
 
-driver = webdriver.Chrome(options=options)
-
 
 def location_list_setting(location_list):
     new_list = []
@@ -67,6 +65,8 @@ def friend_list_setting(friend_list):
     return new_list, new_count_list, new_url, new_img_url
 
 
+# main
+driver = webdriver.Chrome(options=options)
 time.sleep(loading_sec)
 driver.get(instargram_url + "/jejucleanboysclub")
 time.sleep(loading_sec)
@@ -89,21 +89,29 @@ time.sleep(loading_sec)
 driver.get(instargram_url + "/jejucleanboysclub")
 time.sleep(loading_sec)
 
+feed_list = []
 last_height = driver.execute_script("return document.body.scrollHeight")
 while True:
     # 끝까지 스크롤 다운
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(SCROLL_PAUSE_SEC)
     # 스크롤 다운 후 스크롤 높이 다시 가져옴
+    page = driver.page_source
+    soup = BeautifulSoup(page, "html.parser")
+    feed = soup.find_all("div", {"class": "v1Nh3"})
+    # 미리 준비한 리스트에 결합시킴
+    feed_list += feed
+    # 동일한 항목에 대한 중복제거
+    feed_list = list(set(feed_list))
+    # 수집 과정을 출력한다.
+    print(" %02d건 수집함 >> 누적 데이터수: %05d" % (len(feed), len(feed_list)))
+
     new_height = driver.execute_script("return document.body.scrollHeight")
     if new_height == last_height:
         break
     last_height = new_height
 
-page = driver.page_source
-
-soup = BeautifulSoup(page, "html.parser")
-feed = soup.find_all("div", {"class": "v1Nh3"})
+feed = feed_list
 
 print(len(feed))
 # print(feed[0].find("a")["href"])
@@ -182,8 +190,12 @@ for i in range(0, feed_count):
         }
     )
 
-data["feeds_like"] = sorted(data["feeds_date"], key=lambda x: x["like_count"])
-data["feeds_comment"] = sorted(data["feeds_date"], key=lambda x: x["comment_count"])
+data["feeds_like"] = sorted(
+    data["feeds_date"], key=lambda x: x["like_count"], reverse=True
+)
+data["feeds_comment"] = sorted(
+    data["feeds_date"], key=lambda x: x["comment_count"], reverse=True
+)
 
 print(data)
 
