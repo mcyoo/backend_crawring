@@ -7,7 +7,7 @@ import json
 loading_sec = 5
 instargram_url = "https://www.instagram.com"
 SCROLL_PAUSE_SEC = loading_sec
-file_path = "/home/ec2-user/frontend/src/instagram_data.json"
+file_path = "/home/ec2-user/frontend/instagram_data.json"
 
 
 data = {}
@@ -126,7 +126,7 @@ feed_comment = []
 
 for href in feed:
     feed_url.append(instargram_url + href.find("a")["href"])
-    feed_img.append(soup.find("div", {"class": "KL4Bh"}).find("img")["src"])
+    feed_img.append(href.find("img")["src"])
 
 for url in feed_url:
     driver.get(url)
