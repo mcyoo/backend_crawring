@@ -7,7 +7,7 @@ import json
 loading_sec = 5
 instargram_url = "https://www.instagram.com"
 SCROLL_PAUSE_SEC = loading_sec
-file_path = "/home/ec2-user/frontend/instagram_data.json"
+file_path = "/home/ec2-user/frontend/public/instagram_data.json"
 
 
 data = {}
@@ -195,6 +195,9 @@ data["feeds_like"] = sorted(
 )
 data["feeds_comment"] = sorted(
     data["feeds_date"], key=lambda x: x["comment_count"], reverse=True
+)
+data["friend_profile"] = sorted(
+    data["friend_profile"], key=lambda x: x["count"], reverse=True
 )
 
 print(data)
