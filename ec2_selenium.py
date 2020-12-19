@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import time
 import json
 
-loading_sec = 5
+loading_sec = 3
 instargram_url = "https://www.instagram.com"
 SCROLL_PAUSE_SEC = loading_sec
 file_path = "/home/ec2-user/frontend/build/instagram_data.json"
@@ -21,6 +22,9 @@ data["feeds_comment"] = []
 options = Options()
 options.add_argument("--headless")
 options.add_argument("window-size=1920,1080")
+options.add_argument(
+    "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+)
 
 
 def location_list_setting(location_list):
@@ -51,8 +55,6 @@ def friend_list_setting(friend_list):
     for tag_name in new_list:
         new_count_list.append(one_list.count(tag_name))
         new_url.append(instargram_url + "/" + tag_name)
-
-    print(new_url)
 
     for url in new_url:
         driver.get(url)
@@ -92,18 +94,15 @@ time.sleep(loading_sec)
 feed_list = []
 last_height = driver.execute_script("return document.body.scrollHeight")
 while True:
-    # 끝까지 스크롤 다운
+
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(SCROLL_PAUSE_SEC)
-    # 스크롤 다운 후 스크롤 높이 다시 가져옴
+
     page = driver.page_source
     soup = BeautifulSoup(page, "html.parser")
     feed = soup.find_all("div", {"class": "v1Nh3"})
-    # 미리 준비한 리스트에 결합시킴
+
     feed_list += feed
-    # 동일한 항목에 대한 중복제거
-    feed_list = list(set(feed_list))
-    # 수집 과정을 출력한다.
     print(" %02d건 수집함 >> 누적 데이터수: %05d" % (len(feed), len(feed_list)))
 
     new_height = driver.execute_script("return document.body.scrollHeight")
@@ -111,9 +110,15 @@ while True:
         break
     last_height = new_height
 
-feed = feed_list
+new_list = []
+for v in feed_list:
+    if v not in new_list:
+        new_list.append(v)
 
-print(len(feed))
+print(len(new_list))
+
+feed = new_list
+
 # print(feed[0].find("a")["href"])
 feed_count = len(feed)
 feed_url = []
@@ -150,22 +155,12 @@ for url in feed_url:
     feed_like.append(like)
     feed_comment.append(comment)
 
-
-print(feed_url)
-print(feed_img)
-print(feed_location)
-print(feed_tag_name)
-print(feed_content)
-print(feed_like)
-print(feed_comment)
-
 # data
 data["feed_count"] = feed_count
 
 name, count = location_list_setting(feed_location)
 for i in range(0, len(name)):
     data["feed_location"].append({"name": name[i], "count": count[i]})
-print(data)
 
 name, count, url, img_url = friend_list_setting(feed_tag_name)
 for i in range(0, len(name)):
@@ -177,7 +172,7 @@ for i in range(0, len(name)):
             "img_url": img_url[i],
         }
     )
-print(data)
+
 for i in range(0, feed_count):
     data["feeds_date"].append(
         {
@@ -199,8 +194,6 @@ data["feeds_comment"] = sorted(
 data["friend_profile"] = sorted(
     data["friend_profile"], key=lambda x: x["count"], reverse=True
 )
-
-print(data)
 
 with open(file_path, "w") as outfile:
     json.dump(data, outfile)
