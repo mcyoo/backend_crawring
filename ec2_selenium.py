@@ -5,13 +5,25 @@ from bs4 import BeautifulSoup
 import time
 import json
 
+
 loading_sec = 3
 instargram_url = "https://www.instagram.com"
 SCROLL_PAUSE_SEC = loading_sec
 file_path = "/home/ec2-user/frontend/build/instagram_data.json"
 
 
+now = time.localtime()
+date = "%04d-%02d-%02d %02d:%02d:%02d" % (
+    now.tm_year,
+    now.tm_mon,
+    now.tm_mday,
+    now.tm_hour,
+    now.tm_min,
+    now.tm_sec,
+)
+
 data = {}
+data["update_time"] = date
 data["feed_count"] = 0
 data["feed_location"] = []
 data["friend_profile"] = []
@@ -197,5 +209,6 @@ data["friend_profile"] = sorted(
 
 with open(file_path, "w") as outfile:
     json.dump(data, outfile)
+
 
 driver.quit()
